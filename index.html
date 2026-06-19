@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FreshHarvest — Farm Management System</title>
+<style>
+/* ═══ RESET & ROOT ═══ */
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --gd:#1B5E20;
+  --gm:#2E7D32;
+  --gmi:#388E3C;
+  --ga:#4CAF50;
+  --go:#9BBB59;
+  --gl:#F1F8E9;
+  --gp:#E8F5E9;
+  --gb:#C8E6C9;
+  --white:#FFFFFF;
+  --td:#1B5E20;
+  --tb:#333333;
+  --tm:#777777;
+  --shadow:0 2px 10px rgba(46,125,50,0.12);
+  --shadow-lg:0 8px 28px rgba(46,125,50,0.16);
+  --radius:10px;
+  --radius-sm:7px;
+  --sidebar:210px;
+}
+html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;color:var(--tb);background:#f0f4f0;}
+
+/* ═══ SCREEN ROUTER ═══ */
+.screen{display:none;height:100vh;overflow:hidden;}
+.screen.active{display:flex;flex-direction:column;}
+
+/* ═══ TOAST ═══ */
+#toast-container{
+  position:fixed;top:18px;right:18px;z-index:9999;
+  display:flex;flex-direction:column;gap:8px;
+}
+.toast{
+  background:#fff;border-left:4px solid var(--gm);border-radius:8px;
+  padding:10px 14px;min-width:240px;max-width:320px;
+  box-shadow:0 4px 16px rgba(0,0,0,0.13);
+  font-size:12px;color:var(--tb);
+  display:flex;align-items:center;gap:9px;
+  animation:slideIn .25s ease;
+}
+.toast.error{border-left-color:#d32f2f;}
+.toast.success{border-left-color:#2e7d32;}
+.toast.warning{border-left-color:#f57f17;}
+.toast-icon{font-size:16px;flex-shrink:0;}
+.toast-msg{flex:1;font-size:12px;line-height:1.4;}
+.toast-close{cursor:pointer;color:var(--tm);font-size:14px;flex-shrink:0;}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+
+/* ═══ AUTH SCREENS ═══ */
+.auth-outer{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#e8f5e9 0%,#f1f8e9 60%,#c8e6c9 100%);
+  padding:24px;
+}
+.auth-card{
+  display:flex;width:820px;max-width:100%;min-height:540px;
+  border-radius:16px;overflow:hidden;box-shadow:var(--shadow-lg);
+}
+.auth-left{
+  width:340px;flex-shrink:0;background:var(--gm);
+  padding:36px 28px;display:flex;flex-direction:column;
+  position:relative;overflow:hidden;
+}
+.auth-left::before{
+  content:'';position:absolute;width:260px;height:260px;
+  background:rgba(255,255,255,0.06);border-radius:50%;top:-70px;right:-70px;
+}
+.auth-left::after{
+  content:'';position:absolute;width:160px;height:160px;
+  background:rgba(255,255,255,0.04);border-radius:50%;bottom:30px;left:-40px;
+}
+.auth-brand-logo{display:flex;align-items:center;gap:8px;margin-bottom:28px;position:relative;z-index:1;}
+.auth-brand-logo span:first-child{font-size:22px;}
+.auth-brand-name{font-size:17px;font-weight:800;color:#fff;letter-spacing:-0.3px;}
+.auth-hero-text{position:relative;z-index:1;}
+.auth-hero-title{font-size:21px;font-weight:900;color:#fff;line-height:1.25;margin-bottom:6px;}
+.auth-tagline{font-size:12px;color:rgba(255,255,255,0.75);font-style:italic;margin-bottom:24px;}
+.auth-feature{display:flex;align-items:center;gap:10px;margin-bottom:11px;position:relative;z-index:1;}
+.auth-feature-dot{
+  width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.18);
+  display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;
+}
+.auth-feature-text{font-size:11.5px;color:rgba(255,255,255,0.88);}
+.auth-info-box{
+  margin-top:auto;background:rgba(255,255,255,0.12);border-radius:9px;
+  padding:12px 14px;position:relative;z-index:1;
+}
+.auth-info-box .label{font-size:9.5px;color:rgba(255,255,255,0.55);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:3px;}
+.auth-info-box .names{font-size:11.5px;color:#fff;font-weight:600;}
+.auth-info-box .meta{font-size:10.5px;color:rgba(255,255,255,0.65);margin-top:2px;}
+
+.auth-right{
+  flex:1;background:#fff;padding:36px 30px;
+  display:flex;flex-direction:column;justify-content:center;overflow-y:auto;
+}
+.auth-right-logo{
+  width:46px;height:46px;border-radius:12px;background:var(--gl);
+  border:1.5px solid var(--gb);display:flex;align-items:center;justify-content:center;
+  font-size:22px;margin:0 auto 14px;
+}
+.auth-title{font-size:20px;font-weight:800;color:var(--td);text-align:center;margin-bottom:3px;}
+.auth-sub{font-size:12px;color:var(--tm);text-align:center;margin-bottom:22px;}
+
+/* forms */
+.form-field{margin-bottom:13px;}
+.form-label{font-size:11px;font-weight:700;color:var(--td);display:block;margin-bottom:4px;}
+.form-input,.form-select{
+  width:100%;padding:9px 12px;border-radius:var(--radius-sm);
+  background:var(--gl);border:1.5px solid var(--gb);
+  color:var(--tb);font-size:12.5px;outline:none;transition:border-color .15s;
+  font-family:inherit;
+}
+.form-input:focus,.form-select:focus{border-color:var(--gm);}
+.form-input::placeholder{color:var(--tm);}
+.form-input.error{border-color:#d32f2f;background:#fff8f8;}
+.form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;}
+
+.btn{
+  padding:8px 16px;border-radius:var(--radius-sm);font-size:12.5px;font-weight:700;
+  cursor:pointer;border:none;display:inline-flex;align-items:center;
+  justify-content:center;gap:6px;transition:all .15s;font-family:inherit;
+}
+.btn-primary{background:var(--gm);color:#fff;}
+.btn-primary:hover{background:var(--gd);}
+.btn-primary:active{transform:scale(0.98);}
+.btn-outline{background:#fff;border:1.5px solid var(--gm);color:var(--gm);}
+.btn-outline:hover{background:var(--gp);}
+.btn-danger{background:#ffebee;border:1.5px solid #ef9a9a;color:#c62828;}
+.btn-danger:hover{background:#ffcdd2;}
+.btn-ghost{background:transparent;border:1.5px solid var(--gb);color:var(--tm);}
+.btn-ghost:hover{background:var(--gl);}
+.btn-sm{padding:5px 10px;font-size:11px;border-radius:6px;}
+.btn-full{width:100%;padding:10px;}
+.btn-white-hero{background:#fff;color:var(--gd);padding:11px 26px;font-size:13px;font-weight:800;border-radius:8px;cursor:pointer;border:none;}
+.btn-outline-hero{background:transparent;border:2px solid rgba(255,255,255,0.65);color:#fff;padding:11px 26px;font-size:13px;font-weight:700;border-radius:8px;cursor:pointer;}
+
+.divider{display:flex;align-items:center;gap:10px;margin:14px 0;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--gb);}
+.divider span{font-size:10px;color:var(--tm);}
+.auth-footer-link{text-align:center;font-size:11.5px;color:var(--tm);margin-top:14px;}
+.auth-footer-link a{color:var(--gm);cursor:pointer;font-weight:700;text-decoration:none;}
+.auth-footer-link a:hover{text-decoration:underline;}
+.auth-security-note{
+  margin-top:14px;padding:8px 12px;background:var(--gl);border-radius:7px;
+  border:1px solid var(--gb);text-align:center;font-size:10.5px;color:var(--tm);
+}
+
+.row-flex{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;}
+.remember-label{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tm);cursor:pointer;}
+.remember-label input{accent-color:var(--gm);}
+.forgot-link{font-size:11px;color:var(--gm);cursor:pointer;font-weight:700;}
+.forgot-link:hover{text-decoration:underline;}
+
+/* role cards on signup left */
+.role-card{
+  background:rgba(255,255,255,0.12);border-radius:8px;padding:9px 13px;margin-bottom:8px;
+}
+.role-card-title{font-size:11.5px;font-weight:700;color:#fff;margin-bottom:2px;}
+.role-card-sub{font-size:10px;color:rgba(255,255,255,0.68);}
+.roles-heading{font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.45);font-weight:700;margin-bottom:10px;}
+
+/* ═══ APP SHELL (authenticated) ═══ */
+.app-shell{flex:1;display:flex;overflow:hidden;}
+
+/* sidebar */
+.sidebar{
+  width:var(--sidebar);flex-shrink:0;background:var(--gd);
+  display:flex;flex-direction:column;overflow-y:auto;
+}
+.sidebar-logo{
+  display:flex;align-items:center;gap:8px;padding:16px;
+  border-bottom:1px solid rgba(255,255,255,0.1);
+}
+.sidebar-logo-text{font-size:14px;font-weight:900;color:#fff;letter-spacing:-0.3px;}
+.sb-section{
+  padding:14px 14px 4px;font-size:9px;letter-spacing:1px;
+  text-transform:uppercase;color:rgba(255,255,255,0.38);font-weight:700;
+}
+.sb-item{
+  display:flex;align-items:center;gap:9px;padding:9px 14px;
+  color:rgba(255,255,255,0.72);font-size:12px;cursor:pointer;
+  transition:all .12s;border-left:3px solid transparent;position:relative;
+}
+.sb-item:hover{background:rgba(255,255,255,0.07);color:#fff;}
+.sb-item.active{background:rgba(255,255,255,0.13);color:#fff;border-left-color:var(--go);}
+.sb-item-icon{font-size:15px;width:18px;text-align:center;}
+.sb-badge{
+  margin-left:auto;background:var(--go);color:var(--gd);
+  font-size:9px;font-weight:800;padding:2px 7px;border-radius:10px;
+}
+.sidebar-user{
+  margin-top:auto;padding:12px 14px;border-top:1px solid rgba(255,255,255,0.1);
+  display:flex;align-items:center;gap:9px;cursor:pointer;
+}
+.sidebar-user:hover{background:rgba(255,255,255,0.07);}
+.sb-user-av{
+  width:32px;height:32px;border-radius:50%;background:var(--go);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;color:var(--gd);flex-shrink:0;
+}
+.sb-user-name{font-size:11.5px;color:#fff;font-weight:700;}
+.sb-user-role{font-size:9.5px;color:rgba(255,255,255,0.5);}
+.sb-logout{
+  font-size:10px;color:rgba(255,255,255,0.45);margin-top:6px;
+  padding:6px 14px;cursor:pointer;text-align:center;
+  border-top:1px solid rgba(255,255,255,0.08);
+}
+.sb-logout:hover{color:#fff;background:rgba(255,255,255,0.07);}
+
+/* topbar */
+.topbar{
+  background:#fff;border-bottom:1.5px solid var(--gb);
+  padding:0 22px;height:52px;display:flex;align-items:center;
+  justify-content:space-between;flex-shrink:0;
+  box-shadow:0 1px 4px rgba(0,0,0,0.06);
+}
+.topbar-title{font-size:15px;font-weight:800;color:var(--td);}
+.topbar-actions{display:flex;align-items:center;gap:10px;}
+.topbar-icon-btn{
+  width:34px;height:34px;border-radius:8px;border:1.5px solid var(--gb);
+  background:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:16px;cursor:pointer;position:relative;transition:background .12s;
+}
+.topbar-icon-btn:hover{background:var(--gl);}
+.notif-dot{
+  position:absolute;top:4px;right:4px;width:8px;height:8px;
+  border-radius:50%;background:#e53935;border:1.5px solid #fff;
+}
+.topbar-avatar{
+  width:34px;height:34px;border-radius:50%;background:var(--go);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800;color:var(--gd);cursor:pointer;
+  border:2px solid var(--gb);
+}
+.season-badge{
+  background:var(--gl);border:1px solid var(--gb);border-radius:20px;
+  padding:4px 12px;font-size:11px;font-weight:600;color:var(--gm);
+}
+
+/* main content */
+.main-content{flex:1;overflow-y:auto;background:var(--gl);}
+.page-body{padding:22px;}
+.page-header{margin-bottom:20px;}
+.page-title{font-size:19px;font-weight:900;color:var(--td);}
+.page-sub{font-size:12px;color:var(--tm);margin-top:3px;}
+
+/* stat cards */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.stat-card{
+  background:#fff;border-radius:var(--radius);padding:16px;
+  border:1.5px solid var(--gb);position:relative;overflow:hidden;
+}
+.stat-card::before{
+  content:attr(data-icon);position:absolute;right:12px;top:12px;
+  font-size:28px;opacity:0.18;
+}
+.stat-label{font-size:10px;color:var(--tm);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;}
+.stat-value{font-size:26px;font-weight:900;color:var(--td);}
+.stat-trend{font-size:10.5px;margin-top:4px;}
+.stat-trend.up{color:#2e7d32;}
+.stat-trend.down{color:#d32f2f;}
+.stat-trend.neutral{color:var(--tm);}
+
+/* section header */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;}
+.sec-title{font-size:13.5px;font-weight:800;color:var(--td);}
+.sec-sub{font-size:11px;color:var(--tm);margin-top:1px;}
+
+/* cards */
+.card{background:#fff;border-radius:var(--radius);border:1.5px solid var(--gb);overflow:hidden;}
+.card-body{padding:16px;}
+
+/* data table */
+.table-wrap{overflow-x:auto;}
+.data-table{width:100%;border-collapse:collapse;font-size:12px;}
+.data-table th{
+  background:var(--gm);color:#fff;padding:9px 12px;text-align:left;
+  font-size:11px;font-weight:700;white-space:nowrap;
+}
+.data-table th:first-child{border-radius:0;}
+.data-table td{padding:9px 12px;border-bottom:1px solid var(--gb);color:var(--tb);vertical-align:middle;}
+.data-table tr:last-child td{border-bottom:none;}
+.data-table tr:hover td{background:var(--gp);}
+.data-table tr{transition:background .1s;}
+
+/* tags */
+.tag{
+  padding:3px 9px;border-radius:12px;font-size:10.5px;font-weight:700;
+  display:inline-flex;align-items:center;gap:4px;white-space:nowrap;
+}
+.tag-green{background:#c8e6c9;color:#1b5e20;}
+.tag-olive{background:#e6ee9c;color:#33691e;}
+.tag-amber{background:#fff9c4;color:#f57f17;}
+.tag-red{background:#ffcdd2;color:#c62828;}
+.tag-blue{background:#e3f2fd;color:#1565c0;}
+.tag-gray{background:#f0f0f0;color:#666;}
+.tag-purple{background:#ede7f6;color:#4527a0;}
+
+/* two col layout */
+.two-col{display:grid;grid-template-columns:3fr 2fr;gap:14px;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+
+/* bar chart */
+.chart-area{padding:8px 0;}
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:100px;padding:0 2px;}
+.bar-grp{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.bar{
+  width:100%;border-radius:4px 4px 0 0;min-height:4px;
+  background:var(--ga);transition:background .2s;cursor:pointer;
+  position:relative;
+}
+.bar:hover{background:var(--gm);}
+.bar-tooltip{
+  position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);
+  background:var(--gd);color:#fff;font-size:9px;font-weight:700;
+  padding:3px 7px;border-radius:5px;white-space:nowrap;display:none;
+}
+.bar:hover .bar-tooltip{display:block;}
+.bar.peak{background:var(--go);}
+.bar-lbl{font-size:9px;color:var(--tm);}
+.bar-val{font-size:9px;color:var(--gm);font-weight:700;}
+.chart-legend{display:flex;gap:14px;margin-top:8px;font-size:10.5px;color:var(--tm);}
+.chart-legend-dot{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:4px;}
+
+/* notifications */
+.notif-list{display:flex;flex-direction:column;gap:8px;}
+.notif{
+  background:#fff;border-radius:8px;padding:11px 13px;
+  border:1.5px solid var(--gb);display:flex;gap:10px;align-items:flex-start;
+  transition:background .12s;cursor:pointer;
+}
+.notif:hover{background:var(--gp);}
+.notif.unread{border-left:3px solid var(--gm);}
+.notif-icon{
+  width:30px;height:30px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;font-size:14px;flex-shrink:0;background:var(--gl);
+}
+.notif-body{}
+.notif-text{font-size:12px;color:var(--tb);line-height:1.4;}
+.notif-time{font-size:10px;color:var(--tm);margin-top:2px;}
+
+/* ═══ LANDING ═══ */
+.landing-shell{display:flex;flex-direction:column;height:100vh;overflow-y:auto;background:#fff;}
+.landing-nav{
+  background:var(--gm);padding:0 32px;height:58px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;position:sticky;top:0;z-index:100;
+}
+.landing-logo{display:flex;align-items:center;gap:9px;}
+.landing-logo-text{font-size:16px;font-weight:900;color:#fff;letter-spacing:-0.3px;}
+.landing-nav-links{display:flex;gap:22px;}
+.landing-nav-link{font-size:12.5px;color:rgba(255,255,255,0.8);cursor:pointer;transition:color .15s;}
+.landing-nav-link:hover{color:#fff;}
+.landing-nav-actions{display:flex;gap:9px;}
+.btn-nav-ghost{
+  background:transparent;border:1.5px solid rgba(255,255,255,0.5);color:#fff;
+  padding:7px 15px;font-size:12px;font-weight:700;border-radius:7px;cursor:pointer;
+}
+.btn-nav-ghost:hover{background:rgba(255,255,255,0.1);}
+.btn-nav-solid{
+  background:#fff;color:var(--gd);padding:7px 15px;font-size:12px;
+  font-weight:800;border-radius:7px;cursor:pointer;border:none;
+}
+.btn-nav-solid:hover{background:var(--gl);}
+
+.hero{
+  background:linear-gradient(135deg,var(--gm) 0%,var(--gd) 100%);
+  padding:56px 32px 44px;text-align:center;position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'🌿';font-size:200px;position:absolute;opacity:0.06;
+  top:-20px;right:30px;transform:rotate(20deg);pointer-events:none;
+}
+.hero-badge{
+  display:inline-block;background:rgba(255,255,255,0.18);color:#fff;
+  padding:5px 16px;border-radius:20px;font-size:11.5px;font-weight:700;
+  margin-bottom:16px;letter-spacing:0.5px;
+}
+.hero-title{font-size:32px;font-weight:900;color:#fff;line-height:1.2;margin-bottom:12px;}
+.hero-sub{font-size:14px;color:rgba(255,255,255,0.85);max-width:460px;margin:0 auto 26px;line-height:1.6;}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.hero-stats{display:flex;gap:0;justify-content:center;margin-top:36px;}
+.hero-stat{
+  padding:16px 36px;border-right:1px solid rgba(255,255,255,0.18);
+}
+.hero-stat:last-child{border-right:none;}
+.hero-stat-num{font-size:26px;font-weight:900;color:#fff;}
+.hero-stat-label{font-size:10px;color:rgba(255,255,255,0.65);margin-top:2px;}
+
+.features-section{padding:48px 32px;}
+.features-heading{text-align:center;margin-bottom:32px;}
+.features-heading h2{font-size:24px;font-weight:900;color:var(--td);margin-bottom:6px;}
+.features-heading p{font-size:13px;color:var(--tm);}
+.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.feature-card{
+  background:#fff;border-radius:12px;padding:22px;
+  border:1.5px solid var(--gb);transition:box-shadow .2s, border-color .2s;
+}
+.feature-card:hover{box-shadow:var(--shadow);border-color:var(--gb);}
+.feature-icon{
+  width:44px;height:44px;border-radius:11px;background:var(--gl);
+  display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:13px;
+  border:1.5px solid var(--gb);
+}
+.feature-title{font-size:13px;font-weight:800;color:var(--td);margin-bottom:6px;}
+.feature-desc{font-size:11.5px;color:var(--tm);line-height:1.55;}
+
+.landing-cta{
+  background:var(--gm);padding:44px 32px;text-align:center;
+}
+.landing-cta h2{font-size:22px;font-weight:900;color:#fff;margin-bottom:8px;}
+.landing-cta p{font-size:13px;color:rgba(255,255,255,0.8);margin-bottom:22px;}
+.landing-footer{
+  background:var(--gd);padding:20px 32px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.footer-logo{font-size:13px;font-weight:800;color:#fff;display:flex;align-items:center;gap:7px;}
+.footer-meta{font-size:11px;color:rgba(255,255,255,0.5);}
+
+/* ═══ BATCH MANAGEMENT ═══ */
+.lifecycle-bar{
+  display:flex;gap:0;border-radius:9px;overflow:hidden;
+  border:1.5px solid var(--gb);margin-bottom:18px;
+}
+.lc-step{
+  flex:1;padding:9px 4px;text-align:center;font-size:10.5px;font-weight:700;
+  background:var(--gl);color:var(--tm);border-right:1px solid var(--gb);
+  position:relative;
+}
+.lc-step:last-child{border-right:none;}
+.lc-step.done{background:var(--gm);color:#fff;}
+.lc-step.done::after{
+  content:'✓';position:absolute;right:5px;top:50%;transform:translateY(-50%);
+  font-size:10px;
+}
+.lc-step.active{background:var(--go);color:var(--gd);}
+.lc-step-num{font-size:8.5px;opacity:0.7;display:block;margin-bottom:2px;}
+
+/* batch form */
+.batch-form-wrap{
+  background:#fff;border:1.5px solid var(--gb);border-radius:var(--radius);
+  padding:16px;margin-bottom:16px;
+}
+.batch-form-title{font-size:13px;font-weight:800;color:var(--td);margin-bottom:13px;}
+.batch-id-field{
+  background:var(--gl);border:1.5px solid var(--gb);border-radius:var(--radius-sm);
+  padding:9px 12px;font-size:12.5px;color:var(--gm);font-weight:800;
+  font-family:monospace;
+}
+.validation-note{
+  margin-top:12px;padding:10px 14px;background:var(--gl);border-radius:8px;
+  border-left:3px solid var(--gm);font-size:11px;color:var(--tm);line-height:1.5;
+}
+.validation-note strong{color:var(--gm);}
+
+/* filter bar */
+.filter-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:13px;}
+.filter-select{
+  padding:7px 11px;border-radius:var(--radius-sm);border:1.5px solid var(--gb);
+  background:#fff;font-size:12px;color:var(--tb);cursor:pointer;outline:none;
+  font-family:inherit;
+}
+.filter-select:focus{border-color:var(--gm);}
+.filter-search{
+  padding:7px 11px;border-radius:var(--radius-sm);border:1.5px solid var(--gb);
+  background:#fff;font-size:12px;color:var(--tb);outline:none;flex:1;max-width:200px;
+  font-family:inherit;
+}
+.filter-search:focus{border-color:var(--gm);}
+.filter-count{margin-left:auto;font-size:11px;color:var(--tm);}
+
+/* pagination */
+.table-footer{
+  padding:10px 14px;border-top:1.5px solid var(--gb);
+  display:flex;align-items:center;justify-content:space-between;font-size:11.5px;color:var(--tm);
+}
+.load-more{color:var(--gm);cursor:pointer;font-weight:700;}
+.load-more:hover{text-decoration:underline;}
+
+/* progress bar */
+.prog-wrap{height:5px;background:var(--gl);border-radius:5px;overflow:hidden;margin-top:5px;}
+.prog-fill{height:100%;background:var(--ga);border-radius:5px;transition:width .4s;}
+
+/* empty state */
+.empty-state{
+  padding:40px;text-align:center;color:var(--tm);
+}
+.empty-state-icon{font-size:40px;margin-bottom:12px;opacity:0.5;}
+.empty-state-title{font-size:14px;font-weight:700;color:var(--td);margin-bottom:5px;}
+.empty-state p{font-size:12px;}
+
+/* modal */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{
+  background:#fff;border-radius:14px;width:480px;max-width:95vw;
+  box-shadow:0 20px 60px rgba(0,0,0,0.2);transform:translateY(20px);
+  transition:transform .25s;
+}
+.modal-overlay.open .modal-box{transform:translateY(0);}
+.modal-header{
+  padding:18px 20px 14px;border-bottom:1.5px solid var(--gb);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.modal-title{font-size:15px;font-weight:800;color:var(--td);}
+.modal-close{
+  width:28px;height:28px;border-radius:7px;border:1.5px solid var(--gb);
+  background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:14px;color:var(--tm);
+}
+.modal-close:hover{background:var(--gl);}
+.modal-body{padding:18px 20px;}
+.modal-footer{
+  padding:14px 20px;border-top:1.5px solid var(--gb);
+  display:flex;justify-content:flex-end;gap:9px;
+}
+
+/* responsive: hide sidebar on narrow */
+@media(max-width:700px){
+  .sidebar{display:none;}
+  .stats-grid{grid-template-columns:1fr 1fr;}
+  .two-col{grid-template-columns:1fr;}
+  .feature-grid{grid-template-columns:1fr;}
+  .auth-left{display:none;}
+  .auth-card{width:100%;}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ TOAST CONTAINER ═══════════════════ -->
+<div id="toast-container"></div>
+
+<!-- ═══════════════════ MODAL ═══════════════════ -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box" id="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Batch Details</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN 1: LOGIN
+═══════════════════════════════════════════════════════════ -->
+<div class="screen active" id="screen-login">
+  <div class="auth-outer">
+    <div class="auth-card">
+      <!-- Left panel -->
+      <div class="auth-left">
+        <div class="auth-brand-logo">
+          <span>🌿</span>
+          <span class="auth-brand-name">FreshHarvest</span>
+        </div>
+        <div class="auth-hero-text">
+          <div class="auth-hero-title">Welcome Back,<br>Farm Owner</div>
+          <div class="auth-tagline">From Orchards to Opportunities</div>
+          <div class="auth-feature">
+            <div class="auth-feature-dot">🌾</div>
+            <div class="auth-feature-text">Full fruit production lifecycle management</div>
+          </div>
+          <div class="auth-feature">
+            <div class="auth-feature-dot">📦</div>
+            <div class="auth-feature-text">Batch tracking from harvest to warehouse</div>
+          </div>
+          <div class="auth-feature">
+            <div class="auth-feature-dot">📊</div>
+            <div class="auth-feature-text">Seasonal analytics & performance reports</div>
+          </div>
+          <div class="auth-feature">
+            <div class="auth-feature-dot">🚚</div>
+            <div class="auth-feature-text">Shipment scheduling & real-time tracking</div>
+          </div>
+        </div>
+        <div class="auth-info-box">
+          <div class="label">FAST-NUCES Chiniot-Faisalabad</div>
+          <div class="names">Nehal Aftab · Minahil Younas</div>
+          <div class="meta">SDA Assignment — Miss Ayesha Masood</div>
+        </div>
+      </div>
+      <!-- Right panel -->
+      <div class="auth-right">
+        <div class="auth-right-logo">🌿</div>
+        <div class="auth-title">Sign In</div>
+        <div class="auth-sub">Access your farm management dashboard</div>
+
+        <div class="form-field">
+          <label class="form-label">User Role</label>
+          <select class="form-select" id="login-role">
+            <option value="">Select your role</option>
+            <option value="farmer">🌾 Farm Owner / Farmer</option>
+            <option value="factory">🏭 Factory Manager</option>
+            <option value="warehouse">🏪 Warehouse Manager</option>
+            <option value="sales">📋 Sales Manager</option>
+            <option value="accountant">💼 Accountant</option>
+            <option value="logistics">🚚 Logistics Manager</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Username / Email</label>
+          <input class="form-input" id="login-email" type="text" placeholder="e.g. nehal@freshharvest.pk"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Password</label>
+          <input class="form-input" id="login-password" type="password" placeholder="Enter your password"/>
+        </div>
+        <div class="row-flex">
+          <label class="remember-label">
+            <input type="checkbox" id="remember-me"> Remember me
+          </label>
+          <span class="forgot-link" onclick="toast('🔒 Password reset link sent to your email.','success')">Forgot password?</span>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="doLogin()">Sign In →</button>
+        <div class="auth-footer-link">Don't have an account? <a onclick="showScreen('signup')">Register here</a></div>
+        <div class="auth-security-note">🔒 Role-based access control · Secure JDBC connection</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN 2: SIGN UP
+═══════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-signup">
+  <div class="auth-outer">
+    <div class="auth-card">
+      <div class="auth-left">
+        <div class="auth-brand-logo">
+          <span>🌿</span>
+          <span class="auth-brand-name">FreshHarvest</span>
+        </div>
+        <div class="auth-hero-title" style="color:#fff;font-size:21px;font-weight:900;margin-bottom:6px;">Register Your<br>Farm Operation</div>
+        <div class="auth-tagline" style="color:rgba(255,255,255,0.75);font-style:italic;font-size:12px;margin-bottom:22px;">From Orchards to Opportunities</div>
+        <div class="roles-heading">User Roles in FreshHarvest</div>
+        <div class="role-card">
+          <div class="role-card-title">🌾 Farm Owner / Farmer</div>
+          <div class="role-card-sub">Plantation, batches, seasonal reports</div>
+        </div>
+        <div class="role-card">
+          <div class="role-card-title">🏭 Factory Manager</div>
+          <div class="role-card-sub">Processing, grading, packaging</div>
+        </div>
+        <div class="role-card">
+          <div class="role-card-title">📋 Sales / Warehouse / Logistics</div>
+          <div class="role-card-sub">Orders, inventory, shipments</div>
+        </div>
+        <div class="role-card">
+          <div class="role-card-title">💼 Accountant</div>
+          <div class="role-card-sub">Payments, invoices, credit ledger</div>
+        </div>
+        <div class="auth-info-box" style="margin-top:auto;">
+          <div class="label">Assignment 03 — SDA · May 2026</div>
+          <div class="names">Nehal Aftab · Minahil Younas</div>
+        </div>
+      </div>
+      <div class="auth-right" style="overflow-y:auto;">
+        <div class="auth-right-logo">🌿</div>
+        <div class="auth-title">Create Account</div>
+        <div class="auth-sub">Register a new FreshHarvest user</div>
+
+        <div class="form-grid-2">
+          <div class="form-field">
+            <label class="form-label">First Name</label>
+            <input class="form-input" id="su-fname" placeholder="Nehal"/>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Last Name</label>
+            <input class="form-input" id="su-lname" placeholder="Aftab"/>
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Email Address</label>
+          <input class="form-input" id="su-email" type="email" placeholder="nehal@freshharvest.pk"/>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Role Assignment</label>
+          <select class="form-select" id="su-role">
+            <option value="">Select a role…</option>
+            <option>🌾 Farm Owner / Farmer</option>
+            <option>🏭 Factory Manager</option>
+            <option>🏪 Warehouse Manager</option>
+            <option>📋 Sales Manager</option>
+            <option>💼 Accountant</option>
+            <option>🚚 Logistics Manager</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Farm / Organization Name</label>
+          <input class="form-input" id="su-farm" placeholder="e.g. Aftab Orchards, Sargodha"/>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-field">
+            <label class="form-label">Password</label>
+            <input class="form-input" id="su-pass" type="password" placeholder="Min. 8 characters"/>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Confirm Password</label>
+            <input class="form-input" id="su-pass2" type="password" placeholder="Re-enter password"/>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="doSignup()">Create Account →</button>
+        <div class="auth-footer-link" style="margin-top:12px;">Already have an account? <a onclick="showScreen('login')">Sign in here</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN 3: LANDING PAGE
+═══════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-landing">
+  <div class="landing-shell">
+    <!-- nav -->
+    <nav class="landing-nav">
+      <div class="landing-logo">
+        <span style="font-size:20px;">🌿</span>
+        <span class="landing-logo-text">FreshHarvest</span>
+      </div>
+      <div class="landing-nav-links">
+        <span class="landing-nav-link">Features</span>
+        <span class="landing-nav-link">About</span>
+        <span class="landing-nav-link">Pricing</span>
+        <span class="landing-nav-link">Contact</span>
+      </div>
+      <div class="landing-nav-actions">
+        <button class="btn-nav-ghost" onclick="showScreen('login')">Sign In</button>
+        <button class="btn-nav-solid" onclick="showScreen('signup')">Get Started Free</button>
+      </div>
+    </nav>
+
+    <!-- hero -->
+    <div class="hero">
+      <div class="hero-badge">🇵🇰 Built for Pakistan's Fruit Farmers</div>
+      <div class="hero-title">From Orchard to Opportunity —<br>Your Complete Farm OS</div>
+      <div class="hero-sub">Manage plantations, batches, processing, inventory, orders, payments and shipments — all in one place. Trusted by fruit farmers across Punjab & Sindh.</div>
+      <div class="hero-btns">
+        <button class="btn-white-hero" onclick="showScreen('signup')">🌱 Get Started Free</button>
+        <button class="btn-outline-hero" onclick="showScreen('dashboard')">View Dashboard Demo</button>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-num">360°</div>
+          <div class="hero-stat-label">Lifecycle Coverage</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">10+</div>
+          <div class="hero-stat-label">Core Modules</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">6</div>
+          <div class="hero-stat-label">User Roles</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">MVC</div>
+          <div class="hero-stat-label">Architecture</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- features -->
+    <div class="features-section" style="background:var(--gl);">
+      <div class="features-heading">
+        <h2>Everything Your Farm Operation Needs</h2>
+        <p>From a single dashboard, manage every stage of your fruit business with confidence.</p>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🌱</div>
+          <div class="feature-title">Plantation Records</div>
+          <div class="feature-desc">Log every field, crop variety, plantation date, and expected harvest. Track seasonal activities like irrigation, fertilization, and pest control.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📦</div>
+          <div class="feature-title">Batch Management</div>
+          <div class="feature-desc">Create and track batches from harvest through grading, packaging, and dispatch. Auto-generated batch IDs with full lifecycle visibility.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🏭</div>
+          <div class="feature-title">Processing & Grading</div>
+          <div class="feature-desc">Record washing, sorting, and grading results. Assign Grade A/B/C to batches and flag rejects or rework. Full factory traceability.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🏪</div>
+          <div class="feature-title">Inventory & Storage</div>
+          <div class="feature-desc">Assign packaged batches to warehouse locations, track stock levels in real time, and get alerts before inventory runs critically low.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🧾</div>
+          <div class="feature-title">Orders & Invoicing</div>
+          <div class="feature-desc">Manage customer orders, generate invoices automatically, record payments, and maintain a full credit ledger with overdue alerts.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <div class="feature-title">Seasonal Analytics</div>
+          <div class="feature-desc">Compare yield, revenue, and batch performance across seasons. Export PDF and Excel reports to share with stakeholders.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="landing-cta">
+      <h2>Start Managing Your Farm Digitally Today</h2>
+      <p>Join farmers across Pakistan who have digitized their operations with FreshHarvest.</p>
+      <button class="btn-white-hero" onclick="showScreen('signup')">Start Managing Your Farm Today →</button>
+    </div>
+
+    <!-- footer -->
+    <div class="landing-footer">
+      <div class="footer-logo"><span>🌿</span> FreshHarvest</div>
+      <div class="footer-meta">Nehal Aftab · Minahil Younas · Miss Ayesha Masood · FAST-NUCES CFC · SDA 2026</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN 4: DASHBOARD
+═══════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-dashboard">
+  <!-- topbar -->
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="topbar-title">Dashboard</span>
+      <span class="season-badge">🌸 Kharif 2026 · Punjab</span>
+    </div>
+    <div class="topbar-actions">
+      <span style="font-size:11px;color:var(--tm);">Last updated: 2 min ago</span>
+      <button class="topbar-icon-btn" onclick="toast('🔄 Data refreshed successfully.','success')" title="Refresh">🔄</button>
+      <div class="topbar-icon-btn" onclick="showNotifModal()" title="Notifications" style="position:relative;">
+        🔔<span class="notif-dot"></span>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="showScreen('batch')">+ New Batch</button>
+      <div class="topbar-avatar" id="dash-avatar" title="Profile">NA</div>
+    </div>
+  </div>
+
+  <div class="app-shell">
+    <!-- sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-logo">
+        <span style="font-size:18px;">🌿</span>
+        <span class="sidebar-logo-text">FreshHarvest</span>
+      </div>
+      <div class="sb-section">Farm Operations</div>
+      <div class="sb-item active" onclick="sbNav(this,'dashboard')"><span class="sb-item-icon">📊</span> Dashboard</div>
+      <div class="sb-item" onclick="sbNav(this,'batch')"><span class="sb-item-icon">📦</span> Batch Management<span class="sb-badge">3</span></div>
+      <div class="sb-item" onclick="sbNavToast(this,'Plantation Records')"><span class="sb-item-icon">🌱</span> Plantation Records</div>
+      <div class="sb-item" onclick="sbNavToast(this,'Seasonal Activities')"><span class="sb-item-icon">🌦️</span> Seasonal Activities</div>
+
+      <div class="sb-section">Warehouse & Sales</div>
+      <div class="sb-item" onclick="sbNavToast(this,'Inventory')"><span class="sb-item-icon">🏪</span> Inventory</div>
+      <div class="sb-item" onclick="sbNavToast(this,'Orders')" ><span class="sb-item-icon">🧾</span> Orders<span class="sb-badge">5</span></div>
+      <div class="sb-item" onclick="sbNavToast(this,'Payments')"><span class="sb-item-icon">💳</span> Payments</div>
+      <div class="sb-item" onclick="sbNavToast(this,'Shipments')"><span class="sb-item-icon">🚚</span> Shipments</div>
+
+      <div class="sb-section">Reports</div>
+      <div class="sb-item" onclick="sbNavToast(this,'Analytics')"><span class="sb-item-icon">📈</span> Analytics</div>
+      <div class="sb-item" onclick="sbNavToast(this,'Export Reports')"><span class="sb-item-icon">📄</span> Export Reports</div>
+
+      <div class="sidebar-user">
+        <div class="sb-user-av" id="sb-user-av">NA</div>
+        <div>
+          <div class="sb-user-name" id="sb-user-name">Nehal Aftab</div>
+          <div class="sb-user-role" id="sb-user-role">Farm Owner</div>
+        </div>
+      </div>
+      <div class="sb-logout" onclick="doLogout()">⬅ Sign Out</div>
+    </div>
+
+    <!-- main -->
+    <div class="main-content">
+      <div class="page-body">
+        <div class="page-header">
+          <div class="page-title" id="dash-greeting">Good morning, Nehal 👋</div>
+          <div class="page-sub">Here's your farm overview for Kharif 2026 season · Punjab & Sindh operations</div>
+        </div>
+
+        <!-- stats -->
+        <div class="stats-grid">
+          <div class="stat-card" data-icon="🌱">
+            <div class="stat-label">Active Plantations</div>
+            <div class="stat-value">12</div>
+            <div class="stat-trend up">↑ 2 added this season</div>
+          </div>
+          <div class="stat-card" data-icon="📦">
+            <div class="stat-label">Batches in System</div>
+            <div class="stat-value" id="batch-count-stat">47</div>
+            <div class="stat-trend neutral">3 awaiting grading</div>
+          </div>
+          <div class="stat-card" data-icon="🧾">
+            <div class="stat-label">Pending Orders</div>
+            <div class="stat-value">5</div>
+            <div class="stat-trend down">↑ 2 overdue invoices</div>
+          </div>
+          <div class="stat-card" data-icon="💰">
+            <div class="stat-label">Season Revenue</div>
+            <div class="stat-value">₨4.2M</div>
+            <div class="stat-trend up">↑ 18% vs last season</div>
+          </div>
+        </div>
+
+        <!-- two col -->
+        <div class="two-col">
+          <!-- batch table -->
+          <div>
+            <div class="sec-hdr">
+              <div>
+                <div class="sec-title">Recent Batches</div>
+                <div class="sec-sub">Latest 6 of 47 batches</div>
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="showScreen('batch')">View All →</button>
+            </div>
+            <div class="card">
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Batch ID</th>
+                      <th>Crop</th>
+                      <th>Field</th>
+                      <th>Status</th>
+                      <th>Grade</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dash-batch-tbody">
+                    <!-- populated by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- right col -->
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <!-- chart -->
+            <div class="card card-body">
+              <div class="sec-hdr">
+                <div class="sec-title">Monthly Yield (kg)</div>
+                <select class="filter-select" style="font-size:11px;padding:4px 8px;" onchange="toast('📊 Chart updated for '+this.value,'success')">
+                  <option>2025–26 Kharif</option>
+                  <option>2024–25 Rabi</option>
+                  <option>2023–24 Kharif</option>
+                </select>
+              </div>
+              <div class="chart-area">
+                <div class="bar-chart" id="yield-chart">
+                  <!-- populated by JS -->
+                </div>
+              </div>
+            </div>
+
+            <!-- notifications -->
+            <div class="card card-body">
+              <div class="sec-hdr">
+                <div class="sec-title">Notifications</div>
+                <span style="font-size:11px;color:var(--gm);cursor:pointer;" onclick="showNotifModal()">View all</span>
+              </div>
+              <div class="notif-list">
+                <div class="notif unread" onclick="toast('📋 Navigating to invoice...','success')">
+                  <div class="notif-icon">⚠️</div>
+                  <div class="notif-body">
+                    <div class="notif-text">Invoice <strong>#INV-0045</strong> is overdue by 3 days. Follow up with Green Valley Traders.</div>
+                    <div class="notif-time">Today, 9:14 AM</div>
+                  </div>
+                </div>
+                <div class="notif unread" onclick="toast('✅ Viewing shipment details...','success')">
+                  <div class="notif-icon">✅</div>
+                  <div class="notif-body">
+                    <div class="notif-text">Batch <strong>BATCH-2026-0041</strong> dispatched to Lahore. ETA: 2 days.</div>
+                    <div class="notif-time">Today, 7:50 AM</div>
+                  </div>
+                </div>
+                <div class="notif" onclick="showScreen('batch')">
+                  <div class="notif-icon">🏭</div>
+                  <div class="notif-body">
+                    <div class="notif-text">3 batches are ready for grading. Assign to factory manager.</div>
+                    <div class="notif-time">Yesterday, 4:22 PM</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div><!-- end two-col -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN 5: BATCH MANAGEMENT
+═══════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-batch">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="topbar-title">Batch Management</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-outline btn-sm" onclick="showScreen('dashboard')">← Dashboard</button>
+      <button class="btn btn-primary btn-sm" onclick="toggleBatchForm()">+ New Batch</button>
+    </div>
+  </div>
+
+  <div class="app-shell">
+    <!-- sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-logo">
+        <span style="font-size:18px;">🌿</span>
+        <span class="sidebar-logo-text">FreshHarvest</span>
+      </div>
+      <div class="sb-section">Farm Operations</div>
+      <div class="sb-item" onclick="showScreen('dashboard')"><span class="sb-item-icon">📊</span> Dashboard</div>
+      <div class="sb-item active" onclick="sbNav(this,'batch')"><span class="sb-item-icon">📦</span> Batch Management<span class="sb-badge">3</span></div>
+      <div class="sb-item" onclick="sbNavToast(this,'Plantation Records')"><span class="sb-item-icon">🌱</span> Plantation Records</div>
+      <div class="sb-item" onclick="sbNavToast(this,'Seasonal Activities')"><span class="sb-item-icon">🌦️</span> Seasonal Activities</div>
+
+      <div class="sb-section">Warehouse & Sales</div>
+      <div class="sb-item" onclick="sbNavToast(this,'Inventory')"><span class="sb-item-icon">🏪</span> Inventory</div>
+      <div class="sb-item" onclick="sbNavToast(this,'Orders')"><span class="sb-item-icon">🧾</span> Orders<span class="sb-badge">5</span></div>
+      <div class="sb-item" onclick="sbNavToast(this,'Payments')"><span class="sb-item-icon">💳</span> Payments</div>
+      <div class="sb-item" onclick="sbNavToast(this,'Shipments')"><span class="sb-item-icon">🚚</span> Shipments</div>
+
+      <div class="sb-section">Reports</div>
+      <div class="sb-item" onclick="sbNavToast(this,'Analytics')"><span class="sb-item-icon">📈</span> Analytics</div>
+      <div class="sb-item" onclick="sbNavToast(this,'Export Reports')"><span class="sb-item-icon">📄</span> Export Reports</div>
+
+      <div class="sidebar-user">
+        <div class="sb-user-av" id="sb-user-av-batch">NA</div>
+        <div>
+          <div class="sb-user-name" id="sb-user-name-batch">Nehal Aftab</div>
+          <div class="sb-user-role" id="sb-user-role-batch">Farm Owner</div>
+        </div>
+      </div>
+      <div class="sb-logout" onclick="doLogout()">⬅ Sign Out</div>
+    </div>
+
+    <!-- main -->
+    <div class="main-content">
+      <div class="page-body">
+        <div class="page-header">
+          <div class="page-title">Batch Management</div>
+          <div class="page-sub">Track, grade, and manage all harvest batches through their full lifecycle.</div>
+        </div>
+
+        <!-- lifecycle bar -->
+        <div class="lifecycle-bar">
+          <div class="lc-step done"><span class="lc-step-num">01</span>Harvested</div>
+          <div class="lc-step done"><span class="lc-step-num">02</span>Processing</div>
+          <div class="lc-step active"><span class="lc-step-num">03</span>Grading</div>
+          <div class="lc-step"><span class="lc-step-num">04</span>Packaged</div>
+          <div class="lc-step"><span class="lc-step-num">05</span>In Warehouse</div>
+          <div class="lc-step"><span class="lc-step-num">06</span>Dispatched</div>
+        </div>
+
+        <!-- batch form (hidden by default) -->
+        <div class="batch-form-wrap" id="batch-form-wrap" style="display:none;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;">
+            <div class="batch-form-title">📦 Register New Batch</div>
+            <button class="btn btn-ghost btn-sm" onclick="toggleBatchForm()">✕ Cancel</button>
+          </div>
+          <div class="form-grid-3">
+            <div class="form-field">
+              <label class="form-label">Field / Plot ID</label>
+              <select class="form-select" id="bf-field">
+                <option value="">Select field…</option>
+                <option>FLD-001 — North Block, Sargodha</option>
+                <option>FLD-002 — East Block, Faisalabad</option>
+                <option>FLD-003 — South Block, Multan</option>
+                <option>FLD-004 — River Belt, Rahim Yar Khan</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Crop Type</label>
+              <select class="form-select" id="bf-crop">
+                <option value="">Select crop…</option>
+                <option>🍊 Kinnow Mandarin</option>
+                <option>🍇 Grapes (Anab-e-Shahi)</option>
+                <option>🥭 Mango (Chaunsa)</option>
+                <option>🍑 Peach (Sufeda)</option>
+                <option>🍓 Strawberry</option>
+                <option>🍋 Sweet Lemon</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Harvest Date</label>
+              <input class="form-input" id="bf-date" type="date"/>
+            </div>
+          </div>
+          <div class="form-grid-3" style="margin-top:4px;">
+            <div class="form-field">
+              <label class="form-label">Estimated Yield (kg)</label>
+              <input class="form-input" id="bf-yield" type="number" placeholder="e.g. 2400" min="0"/>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Auto-Generated Batch ID</label>
+              <div class="batch-id-field" id="bf-auto-id">BATCH-2026-0048</div>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Batch Notes</label>
+              <input class="form-input" id="bf-notes" placeholder="Optional notes…"/>
+            </div>
+          </div>
+          <div style="display:flex;gap:9px;margin-top:8px;">
+            <button class="btn btn-primary btn-sm" onclick="saveBatch()">💾 Save Batch</button>
+            <button class="btn btn-outline btn-sm" onclick="saveDraftBatch()">📝 Save as Draft</button>
+            <button class="btn btn-ghost btn-sm" onclick="toggleBatchForm()">Cancel</button>
+          </div>
+          <div class="validation-note">
+            <strong>Validation rules:</strong> FR-3.3 — Field must have an active plantation record before a batch can be created. FR-3.4 — Duplicate batches for the same field and harvest date are automatically blocked.
+          </div>
+        </div>
+
+        <!-- filter bar -->
+        <div class="card card-body" style="margin-bottom:14px;">
+          <div class="sec-hdr" style="margin-bottom:11px;">
+            <div class="sec-title">All Batches</div>
+            <div style="font-size:11px;color:var(--tm);" id="filtered-count">Showing 6 of 47 batches</div>
+          </div>
+          <div class="filter-bar">
+            <select class="filter-select" id="filter-status" onchange="filterBatches()">
+              <option value="all">All Statuses</option>
+              <option value="Harvested">Harvested</option>
+              <option value="Processing">Processing</option>
+              <option value="Graded">Graded</option>
+              <option value="Packaged">Packaged</option>
+              <option value="In Warehouse">In Warehouse</option>
+              <option value="Dispatched">Dispatched</option>
+            </select>
+            <select class="filter-select" id="filter-crop" onchange="filterBatches()">
+              <option value="all">All Crops</option>
+              <option value="Kinnow">Kinnow Mandarin</option>
+              <option value="Grapes">Grapes</option>
+              <option value="Mango">Mango</option>
+              <option value="Peach">Peach</option>
+              <option value="Strawberry">Strawberry</option>
+            </select>
+            <input class="filter-search" id="filter-search" placeholder="🔍 Search batch ID…" oninput="filterBatches()"/>
+            <button class="btn btn-ghost btn-sm" onclick="clearFilters()">✕ Clear</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Batch ID</th>
+                  <th>Crop</th>
+                  <th>Field</th>
+                  <th>Harvest Date</th>
+                  <th>Yield (kg)</th>
+                  <th>Status</th>
+                  <th>Grade</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="batch-tbody"></tbody>
+            </table>
+          </div>
+          <div class="table-footer">
+            <span id="batch-table-count">Showing 6 of 47 batches</span>
+            <span class="load-more" onclick="toast('📦 Loading more batches...','success')">Load more →</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════ APP STATE ═══════════════════ */
+const state = {
+  currentUser: { name:'Nehal Aftab', initials:'NA', role:'Farm Owner' },
+  batchCounter: 48,
+};
+
+/* ═══════════════════ BATCH DATA ═══════════════════ */
+const batchData = [
+  { id:'BATCH-2026-0047', crop:'Kinnow Mandarin', field:'FLD-001', date:'2026-06-10', yield:2800, status:'Graded',       grade:'A' },
+  { id:'BATCH-2026-0046', crop:'Grapes',          field:'FLD-002', date:'2026-06-05', yield:1600, status:'Processing',   grade:'—' },
+  { id:'BATCH-2026-0045', crop:'Mango',           field:'FLD-003', date:'2026-05-28', yield:3200, status:'In Warehouse', grade:'B' },
+  { id:'BATCH-2026-0044', crop:'Kinnow Mandarin', field:'FLD-001', date:'2026-05-20', yield:2100, status:'Dispatched',   grade:'A' },
+  { id:'BATCH-2026-0043', crop:'Peach',           field:'FLD-004', date:'2026-05-15', yield:900,  status:'Packaged',     grade:'B' },
+  { id:'BATCH-2026-0042', crop:'Strawberry',      field:'FLD-002', date:'2026-05-10', yield:450,  status:'Graded',       grade:'C' },
+];
+
+const statusTagMap = {
+  'Harvested':    'tag-gray',
+  'Processing':   'tag-blue',
+  'Graded':       'tag-olive',
+  'Packaged':     'tag-olive',
+  'In Warehouse': 'tag-green',
+  'Dispatched':   'tag-green',
+  'Rejected':     'tag-red',
+  'Rework':       'tag-amber',
+};
+
+const gradeTagMap = {
+  'A':'tag-green','B':'tag-olive','C':'tag-amber','—':'tag-gray',
+};
+
+const actionMap = {
+  'Processing':   ['Grade Batch','btn-primary'],
+  'Graded':       ['Assign WH','btn-primary'],
+  'Packaged':     ['Move to WH','btn-outline'],
+  'In Warehouse': ['View Details','btn-outline'],
+  'Dispatched':   ['Track Shipment','btn-outline'],
+  'Harvested':    ['Start Processing','btn-primary'],
+  'default':      ['View','btn-ghost'],
+};
+
+/* ═══════════════════ YIELD CHART DATA ═══════════════════ */
+const chartData = [
+  {month:'Oct',val:42},{month:'Nov',val:78},{month:'Dec',val:95},
+  {month:'Jan',val:110},{month:'Feb',val:88},{month:'Mar',val:67},
+];
+
+/* ═══════════════════ TOAST ═══════════════════ */
+function toast(msg, type='success'){
+  const icons = {success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'};
+  const c = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className=`toast ${type}`;
+  el.innerHTML=`<span class="toast-icon">${icons[type]||'ℹ️'}</span>
+    <span class="toast-msg">${msg}</span>
+    <span class="toast-close" onclick="this.parentElement.remove()">✕</span>`;
+  c.appendChild(el);
+  setTimeout(()=>{ if(el.parentElement) el.style.opacity='0'; setTimeout(()=>el.remove(),300); },3500);
+}
+
+/* ═══════════════════ SCREEN NAV ═══════════════════ */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const s = document.getElementById('screen-'+id);
+  if(s){ s.classList.add('active'); }
+  if(id==='dashboard') initDashboard();
+  if(id==='batch') initBatch();
+}
+
+/* ═══════════════════ SIDEBAR NAV ═══════════════════ */
+function sbNav(el, screenId){
+  el.closest('.sidebar').querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+  showScreen(screenId);
+}
+function sbNavToast(el, name){
+  el.closest('.sidebar').querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+  toast(`📂 <strong>${name}</strong> module — coming in full build.`,'info');
+  setTimeout(()=>{ el.classList.remove('active'); el.closest('.sidebar').querySelector('.sb-item.active') || document.querySelector('#screen-dashboard .sb-item:first-of-type')?.classList.add('active'); },1500);
+}
+
+/* ═══════════════════ AUTH ═══════════════════ */
+function doLogin(){
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-password').value;
+  const role  = document.getElementById('login-role').value;
+
+  // clear errors
+  ['login-email','login-password','login-role'].forEach(id=>{
+    document.getElementById(id).classList.remove('error');
+  });
+
+  let valid=true;
+  if(!role){ document.getElementById('login-role').classList.add('error'); valid=false; }
+  if(!email){ document.getElementById('login-email').classList.add('error'); valid=false; }
+  if(!pass){ document.getElementById('login-password').classList.add('error'); valid=false; }
+  if(!valid){ toast('Please fill in all required fields.','error'); return; }
+
+  // set user info from form
+  const namePart = email.split('@')[0];
+  const displayName = namePart.charAt(0).toUpperCase()+namePart.slice(1);
+  const roleLabels = {farmer:'Farm Owner',factory:'Factory Manager',warehouse:'Warehouse Manager',sales:'Sales Manager',accountant:'Accountant',logistics:'Logistics Manager'};
+  state.currentUser.name = displayName;
+  state.currentUser.initials = displayName.slice(0,2).toUpperCase();
+  state.currentUser.role = roleLabels[role] || role;
+
+  toast(`🎉 Welcome back, ${displayName}! Signed in as ${state.currentUser.role}.`,'success');
+  setTimeout(()=>showScreen('dashboard'),600);
+}
+
+function doSignup(){
+  const fname = document.getElementById('su-fname').value.trim();
+  const lname = document.getElementById('su-lname').value.trim();
+  const email = document.getElementById('su-email').value.trim();
+  const role  = document.getElementById('su-role').value;
+  const farm  = document.getElementById('su-farm').value.trim();
+  const pass  = document.getElementById('su-pass').value;
+  const pass2 = document.getElementById('su-pass2').value;
+
+  const fields=[{id:'su-fname',val:fname},{id:'su-lname',val:lname},{id:'su-email',val:email},{id:'su-role',val:role},{id:'su-farm',val:farm},{id:'su-pass',val:pass},{id:'su-pass2',val:pass2}];
+  let valid=true;
+  fields.forEach(f=>{
+    document.getElementById(f.id).classList.remove('error');
+    if(!f.val){ document.getElementById(f.id).classList.add('error'); valid=false; }
+  });
+  if(!valid){ toast('Please fill in all required fields.','error'); return; }
+  if(!email.includes('@')){ document.getElementById('su-email').classList.add('error'); toast('Please enter a valid email address.','error'); return; }
+  if(pass.length < 8){ document.getElementById('su-pass').classList.add('error'); toast('Password must be at least 8 characters.','error'); return; }
+  if(pass !== pass2){ document.getElementById('su-pass2').classList.add('error'); toast('Passwords do not match.','error'); return; }
+
+  state.currentUser.name = fname+' '+lname;
+  state.currentUser.initials = (fname[0]+lname[0]).toUpperCase();
+  state.currentUser.role = role.replace(/^[^\s]+ /,'');
+
+  toast(`✅ Account created! Welcome to FreshHarvest, ${fname}!`,'success');
+  setTimeout(()=>showScreen('dashboard'),600);
+}
+
+function doLogout(){
+  toast('👋 Signed out successfully.','success');
+  setTimeout(()=>showScreen('login'),600);
+}
+
+/* ═══════════════════ DASHBOARD ═══════════════════ */
+function initDashboard(){
+  // update user info
+  ['dash-avatar','sb-user-av'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.textContent=state.currentUser.initials;
+  });
+  ['sb-user-name'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.textContent=state.currentUser.name;
+  });
+  ['sb-user-role'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.textContent=state.currentUser.role;
+  });
+
+  const hr = new Date().getHours();
+  const greet = hr<12?'morning':hr<17?'afternoon':'evening';
+  const firstName = state.currentUser.name.split(' ')[0];
+  document.getElementById('dash-greeting').textContent=`Good ${greet}, ${firstName} 👋`;
+
+  // batch table
+  const tbody = document.getElementById('dash-batch-tbody');
+  tbody.innerHTML = batchData.slice(0,6).map(b=>batchRowDash(b)).join('');
+
+  // yield chart
+  buildChart();
+}
+
+function batchRowDash(b){
+  const sCls = statusTagMap[b.status]||'tag-gray';
+  const gCls = gradeTagMap[b.grade]||'tag-gray';
+  const [aTxt,aCls] = actionMap[b.status]||actionMap['default'];
+  return `<tr>
+    <td><span style="color:var(--gm);font-weight:800;font-family:monospace;font-size:11px;">${b.id}</span></td>
+    <td>${b.crop}</td>
+    <td style="font-family:monospace;font-size:11px;">${b.field}</td>
+    <td><span class="tag ${sCls}">${b.status}</span></td>
+    <td><span class="tag ${gCls}">${b.grade}</span></td>
+    <td><button class="btn ${aCls} btn-sm" onclick="batchAction('${b.id}','${aTxt}')">${aTxt}</button></td>
+  </tr>`;
+}
+
+function buildChart(){
+  const max = Math.max(...chartData.map(d=>d.val));
+  const html = chartData.map(d=>{
+    const h = Math.round((d.val/max)*90);
+    const isPeak = d.val===max;
+    return `<div class="bar-grp">
+      <div class="bar-val">${d.val}</div>
+      <div class="bar ${isPeak?'peak':''}" style="height:${h}px;">
+        <div class="bar-tooltip">${d.month}: ${d.val} kg</div>
+      </div>
+      <div class="bar-lbl">${d.month}</div>
+    </div>`;
+  }).join('');
+  const el=document.getElementById('yield-chart');
+  if(el) el.innerHTML=html;
+}
+
+function batchAction(id, action){
+  if(action==='Grade Batch'){
+    openModal('Grade Batch — '+id,
+      `<div class="form-field"><label class="form-label">Assign Grade</label>
+      <select class="form-select" id="grade-sel">
+        <option>Grade A — Premium Quality</option>
+        <option>Grade B — Standard Quality</option>
+        <option>Grade C — Below Standard</option>
+        <option>Rejected — Not Suitable</option>
+      </select></div>
+      <div class="form-field"><label class="form-label">Grader Notes</label>
+      <input class="form-input" placeholder="Optional grading notes…"/></div>`,
+      `<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
+       <button class="btn btn-primary btn-sm" onclick="confirmGrade('${id}')">Confirm Grade</button>`
+    );
+  } else if(action==='Track Shipment'){
+    openModal('Shipment Tracker — '+id,
+      `<div style="padding:8px 0;">
+        <div style="font-size:12px;color:var(--tm);margin-bottom:14px;">Live tracking for dispatched batch</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          ${['📤 Dispatched from Sargodha Farm','🚛 In transit — M2 Motorway','📍 Arrived at Lahore distribution hub','🏪 Out for delivery to buyer'].map((s,i)=>
+            `<div style="display:flex;gap:10px;align-items:center;">
+              <div style="width:22px;height:22px;border-radius:50%;background:${i<3?'var(--gm)':'var(--gl)'};border:2px solid ${i<3?'var(--gm)':'var(--gb)'};display:flex;align-items:center;justify-content:center;font-size:11px;color:${i<3?'#fff':'var(--tm)'};">${i<3?'✓':i+1}</div>
+              <div style="font-size:12px;color:${i<3?'var(--tb)':'var(--tm)'};">${s}</div>
+            </div>`
+          ).join('')}
+        </div>
+      </div>`,
+      `<button class="btn btn-outline btn-sm" onclick="toast('📄 Shipment report exported.','success');closeModal()">Export Report</button>
+       <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>`
+    );
+  } else {
+    toast(`📦 ${action} — ${id}`,'info');
+  }
+}
+
+function confirmGrade(id){
+  const g = document.getElementById('grade-sel').value.split('—')[0].trim();
+  toast(`✅ ${id} graded as <strong>${g}</strong>`,'success');
+  closeModal();
+  // update table
+  batchData.forEach(b=>{ if(b.id===id){ b.grade=g.replace('Grade ',''); b.status='Graded'; } });
+  initDashboard();
+}
+
+/* ═══════════════════ BATCH MANAGEMENT ═══════════════════ */
+function initBatch(){
+  ['sb-user-av-batch','sb-user-name-batch','sb-user-role-batch'].forEach(id=>{
+    const el=document.getElementById(id); if(!el) return;
+    if(id.includes('av')) el.textContent=state.currentUser.initials;
+    else if(id.includes('name')) el.textContent=state.currentUser.name;
+    else el.textContent=state.currentUser.role;
+  });
+  renderBatchTable(batchData);
+}
+
+function renderBatchTable(data){
+  const tbody = document.getElementById('batch-tbody');
+  if(!tbody) return;
+  if(!data.length){
+    tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:28px;">
+      <div class="empty-state">
+        <div class="empty-state-icon">📦</div>
+        <div class="empty-state-title">No batches found</div>
+        <p>Try adjusting your filters or create a new batch.</p>
+      </div>
+    </td></tr>`;
+    return;
+  }
+  tbody.innerHTML = data.map(b=>{
+    const sCls = statusTagMap[b.status]||'tag-gray';
+    const gCls = gradeTagMap[b.grade]||'tag-gray';
+    const [aTxt,aCls] = actionMap[b.status]||actionMap['default'];
+    return `<tr>
+      <td><span style="color:var(--gm);font-weight:800;font-family:monospace;font-size:11px;">${b.id}</span></td>
+      <td>${b.crop}</td>
+      <td style="font-family:monospace;font-size:11px;color:var(--tm);">${b.field}</td>
+      <td>${b.date}</td>
+      <td>${b.yield.toLocaleString()}</td>
+      <td><span class="tag ${sCls}">${b.status}</span></td>
+      <td><span class="tag ${gCls}">${b.grade}</span></td>
+      <td><button class="btn ${aCls} btn-sm" onclick="batchAction('${b.id}','${aTxt}')">${aTxt}</button></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('batch-table-count').textContent=`Showing ${data.length} of ${batchData.length+state.batchCounter-48} batches`;
+}
+
+function filterBatches(){
+  const status = document.getElementById('filter-status').value;
+  const crop   = document.getElementById('filter-crop').value;
+  const search = document.getElementById('filter-search').value.toLowerCase();
+  let filtered = batchData.filter(b=>{
+    if(status!=='all' && b.status!==status) return false;
+    if(crop!=='all' && !b.crop.toLowerCase().includes(crop.toLowerCase())) return false;
+    if(search && !b.id.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  renderBatchTable(filtered);
+  document.getElementById('filtered-count').textContent=`Showing ${filtered.length} of ${batchData.length} batches`;
+}
+
+function clearFilters(){
+  document.getElementById('filter-status').value='all';
+  document.getElementById('filter-crop').value='all';
+  document.getElementById('filter-search').value='';
+  renderBatchTable(batchData);
+  document.getElementById('filtered-count').textContent=`Showing ${batchData.length} of ${batchData.length} batches`;
+}
+
+/* ═══════════════════ BATCH FORM ═══════════════════ */
+let formVisible=false;
+function toggleBatchForm(){
+  formVisible=!formVisible;
+  const wrap=document.getElementById('batch-form-wrap');
+  if(wrap) wrap.style.display=formVisible?'block':'none';
+  if(formVisible){
+    // set today as default date
+    document.getElementById('bf-date').value=new Date().toISOString().split('T')[0];
+    // update auto ID
+    document.getElementById('bf-auto-id').textContent=`BATCH-2026-00${state.batchCounter}`;
+  }
+}
+
+function saveBatch(){
+  const field = document.getElementById('bf-field').value;
+  const crop  = document.getElementById('bf-crop').value;
+  const date  = document.getElementById('bf-date').value;
+  const yld   = document.getElementById('bf-yield').value;
+
+  ['bf-field','bf-crop','bf-date','bf-yield'].forEach(id=>document.getElementById(id).classList.remove('error'));
+  let valid=true;
+  if(!field){ document.getElementById('bf-field').classList.add('error'); valid=false; }
+  if(!crop){  document.getElementById('bf-crop').classList.add('error'); valid=false; }
+  if(!date){  document.getElementById('bf-date').classList.add('error'); valid=false; }
+  if(!yld||+yld<=0){ document.getElementById('bf-yield').classList.add('error'); valid=false; }
+  if(!valid){ toast('Please fill in all required batch fields.','error'); return; }
+
+  // check duplicate
+  const fieldCode = field.split('—')[0].trim();
+  const dup = batchData.find(b=>b.field===fieldCode && b.date===date);
+  if(dup){ toast(`⚠️ Duplicate blocked: Batch already exists for ${fieldCode} on ${date}.`,'error'); return; }
+
+  const newBatch = {
+    id:`BATCH-2026-00${state.batchCounter}`,
+    crop: crop.replace(/^[^\s]+ /,''),
+    field: fieldCode,
+    date, yield:+yld, status:'Harvested', grade:'—'
+  };
+  batchData.unshift(newBatch);
+  state.batchCounter++;
+  document.getElementById('batch-count-stat') && (document.getElementById('batch-count-stat').textContent=47+batchData.length-6);
+
+  toast(`✅ Batch <strong>${newBatch.id}</strong> created successfully!`,'success');
+  toggleBatchForm();
+  renderBatchTable(batchData);
+}
+
+function saveDraftBatch(){
+  toast('📝 Batch saved as draft. Complete it before closing the season.','warning');
+  toggleBatchForm();
+}
+
+/* ═══════════════════ MODAL ═══════════════════ */
+function openModal(title, body, footer){
+  document.getElementById('modal-title').innerHTML=title;
+  document.getElementById('modal-body').innerHTML=body;
+  if(footer) document.getElementById('modal-footer').innerHTML=footer;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal(){
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+document.getElementById('modal-overlay').addEventListener('click',function(e){
+  if(e.target===this) closeModal();
+});
+
+/* ═══════════════════ NOTIFICATION MODAL ═══════════════════ */
+function showNotifModal(){
+  const notifs=[
+    {icon:'⚠️',text:'Invoice #INV-0045 overdue by 3 days. Green Valley Traders.',time:'Today 9:14 AM',type:'warning'},
+    {icon:'✅',text:'Batch BATCH-2026-0041 dispatched to Lahore. ETA 2 days.',time:'Today 7:50 AM',type:'success'},
+    {icon:'🏭',text:'3 batches awaiting grading by factory manager.',time:'Yesterday 4:22 PM',type:'info'},
+    {icon:'📦',text:'Batch BATCH-2026-0040 moved to Warehouse B, Slot 12.',time:'Yesterday 2:11 PM',type:'success'},
+    {icon:'🌱',text:'Plantation FLD-003 scheduled for seasonal activity review.',time:'2 days ago',type:'info'},
+  ];
+  openModal('🔔 Notifications',
+    `<div style="display:flex;flex-direction:column;gap:9px;">
+      ${notifs.map(n=>`<div class="notif unread" style="cursor:default;">
+        <div class="notif-icon">${n.icon}</div>
+        <div class="notif-body">
+          <div class="notif-text">${n.text}</div>
+          <div class="notif-time">${n.time}</div>
+        </div>
+      </div>`).join('')}
+    </div>`,
+    `<button class="btn btn-outline btn-sm" onclick="toast('🗑️ All notifications cleared.','success');closeModal()">Mark All Read</button>
+     <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>`
+  );
+}
+
+/* ═══════════════════ INIT ═══════════════════ */
+document.addEventListener('DOMContentLoaded',()=>{
+  // set today as default harvest date
+  const dateField = document.getElementById('bf-date');
+  if(dateField) dateField.value = new Date().toISOString().split('T')[0];
+});
+</script>
+</body>
+</html>
